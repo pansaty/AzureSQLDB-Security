@@ -1,6 +1,7 @@
 
 ## Task 1: Restore the ContosoFinance Database
-Download the database backup from [lab-files](/lab-files/ContosoFinance.bacpac)
+Download the ContosoFinance database backup from [lab-files](/lab-files/ContosoFinance.bacpac) and restore either using the instructions via [cloud-shell](https://docs.microsoft.com/en-us/azure/azure-sql/database/scripts/import-from-bacpac-powershell) or from the [portal](https://docs.microsoft.com/en-us/azure/azure-sql/database/database-import?tabs=azure-powershell). 
+
 ## Task 2: Create a the ContosoFinance Website
 With the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) installed on your machine, open a PowerShell command prompt and run the following steps:
 <BR><b>NOTE: </b>Alternatively you can use [shell.azure.com](https://shell.azure.com) 
@@ -38,11 +39,11 @@ With the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cl
    ![ContosoFinance](media/ContosoFinance.png)
 
 
-## (Optional) Exercise 3: Security Features in Azure SQLDB to protect your Data
+### Task 4: Security Features in Azure SQLDB to protect your Data
 
-One of the benefits of moving to Azure SQLDB is to take advantage of the latest engine enhancements. In particular security is of utmost importance to most customers. In this section we will take a look at implementing Dynamic Data Masking and Row Level Security. What is not covered is Always Encrypted due to brevity, but can be enabled following [this blog](https://beanalytics.wordpress.com/2016/09/15/using-sql-always-encrypted-with-azure-web-app-service/).
+One of the benefits of moving to Azure SQLDB is to take advantage of the latest engine enhancements. In particular security is of utmost importance to most customers. In this section we will take a look at implementing Dynamic Data Masking, Row Level Security and Always Encrypted.
 
-### Task 1: Enabling Dynamic Data Masking (DDM)
+### Task 5: Enabling Dynamic Data Masking (DDM)
 
 1. Open the Contoso Finance website and browse to the Customers tab. Notice you can see all customers information. We will enable DDM to the AppUser where they can only see the last 4 digits of the SSN number.
 
@@ -70,7 +71,7 @@ One of the benefits of moving to Azure SQLDB is to take advantage of the latest 
 
    ![CustomersMasked](media/CustomersMasked.png)
 
-### Task 2: Enabling Row Level Security (RLS)
+### Task 6: Enabling Row Level Security (RLS)
 
 In the previous task we looked at obfuscating data, what if you wanted to limit the visibility of data depending on your users. RLS can be implemented to solve for this
 
@@ -140,9 +141,37 @@ In the previous task we looked at obfuscating data, what if you wanted to limit 
    2. **Password:** P@ssw0rd
 6. Notice you now see different records.
 
-## After the hands-on lab 
+## Task 7: Enabling Always Encrypted 
 
-Duration: 5 Minutes
+The steps here to configure Always Encrypted is for demo purposes only. For a production implementation, leveraging Azure Key Vault is highly recommneded and you can leverage the instructions from [here](https://docs.microsoft.com/en-us/azure/azure-sql/database/always-encrypted-azure-key-vault-configure?tabs=azure-powershell#create-a-client-application-that-works-with-the-encrypted-data). 
+
+1. Connect to the ContosoFinance database from SSMS
+2. As of the writing of this articlee, you cannot layer Always Encrypted over a table that has Row Level Security enabled, we need to drop RLS from the table:
+```sql
+DROP SECURITY POLICY IF EXISTS Security.customerSecurityPolicy
+DROP FUNCTION IF EXISTS Security.customerAccessPredicate
+DROP SCHEMA IF EXISTS Security
+go
+```
+3. Navigate to the Cusomters table, right click and choose "Encrypt Columns..."
+![EncryptColumns](media/EncryptColumns.png)
+4. On the <b>Introduction</b> page, hit next
+5. On the <b>Column Selection</b> page:
+   1. Select the SSN Column
+   2. On Encryption Type, choose <b>Deterministic</b> and hit Next
+   3. Make a note of the Column master key name
+6. On the <b>Master Key Configuration</b> page:
+   1. Ensure <b>Windows certificate store</b> under the "Select the key store provider" then hit Next
+7. On the <b>Run Settings</b> ensure the "Proceed to finish now" readial is selected then hit Next
+8. on the <b>Summary</b> page hit Finish
+9. Leverage the steps from [this blog ](https://beanalytics.wordpress.com/2016/09/15/using-sql-always-encrypted-with-azure-web-app-service/) to Export the Column Master Key that was used to protect the Column Encrytion Key. In production, this key should be created and stored in Azure Key Vault or some other HSM.
+10. In the ContosoFinance WebApp, also modify the connection string to include <b>Column Encryption Setting</b>:
+
+         Data Source=pankajtsp.database.windows.net; Initial Catalog=contosofinance; User ID=appuser;Password=P@ssw0rd1234;Column Encryption Setting=Enabled
+
+
+
+## CLEANUP!!
 
 After successfully completing this lab, to conserve cost, you can remove all resources created by deleting the resource group. If you prefer to retain the artifacts created as part of this lab do not proceed to the next task
 
