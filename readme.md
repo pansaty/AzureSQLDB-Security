@@ -1,6 +1,6 @@
 
 ## Task 1: Restore the ContosoFinance Database
-Download the database backup from [lab-files](/lab-files/contosofinance.bacpac)
+Download the database backup from [lab-files](/lab-files/ContosoFinance.bacpac)
 ## Task 2: Create a the ContosoFinance Website
 With the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) installed on your machine, open a PowerShell command prompt and run the following steps:
 <BR><b>NOTE: </b>Alternatively you can use [shell.azure.com](https://shell.azure.com) 
